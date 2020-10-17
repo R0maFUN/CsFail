@@ -1,0 +1,11 @@
+~~~ -[ STATISTICS ]- ~~~
+1. Parse info about rounds [DONE]
+2. Saving info to csv file [DONE]
+3. Do not parse rounds which we already have in the csv file
+4. Analyze info about rounds
+5. Show analyzed data 
+6. Console UI
+
+~~~ -[ Automatic use of daily promocodes ]- ~~~
+
+~~~ -[ Automatic bettings ]- ~~~
