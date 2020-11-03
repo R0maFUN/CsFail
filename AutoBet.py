@@ -7,6 +7,7 @@ from selenium.webdriver.common.keys import Keys
 from time import sleep
 import os
 import sys
+from collections import deque
 #from fake_useragent import UserAgent
 
 # class Round:
@@ -22,32 +23,38 @@ class Skin:
 class Inventory:
     def __init__(self, driver):
         invHtml = WebDriverWait(driver, 60).until(
-        EC.presence_of_all_elements_located((By.CLASS_NAME, "skin_theme_inventory"))
-    )
+            EC.presence_of_all_elements_located((By.CLASS_NAME, "skin_theme_inventory"))
+        )
         if (len(invHtml) > 0):
             self.skins = [Skin(el) for el in invHtml]
             self.balance = sum(el.price for el in self.skins)
         else:
             self.skins = list()
             self.balance = 0
+        bal = driver.find_element_by_class_name("profile__coins").text
+        self.balance += float(bal.strip('$'))
+
         self.selectedSkins = list()
         self.selectedSkinsPrice = 0
         self.shopHtml = driver.find_element_by_class_name("inventory__footer")
         self.shopHtml = self.shopHtml.find_element_by_tag_name("button")
         self.betButton = WebDriverWait(driver, 40).until(
-        EC.presence_of_element_located((By.CLASS_NAME, "information__footer"))
-    )
+            EC.presence_of_element_located((By.CLASS_NAME, "information__footer"))
+        )
         #self.betButton = self.betButton.find_element_by_tag_name("button")
         print(self.betButton.text)
     def Update(self):
         #self.UnSelectAll()
-        invHtml = driver.find_elements_by_class_name("skin_theme_inventory")
-        if(len(invHtml) > 0):
+        try:
+            invHtml = driver.find_elements_by_class_name("skin_theme_inventory")
+            #if(len(invHtml) > 0):
             self.skins = [Skin(el) for el in invHtml]
             self.balance = sum(el.price for el in self.skins)
-        else:
+        except:
             self.skins = list()
             self.balance = 0
+        bal = driver.find_element_by_class_name("profile__coins").text
+        self.balance += float(bal.strip('$'))
         self.selectedSkins = list()
         self.selectedSkinsPrice = 0
 
@@ -115,8 +122,10 @@ def waitForStrick(driver, invent, crushStrick = 1,bet = 0.25, strategy = 0): # G
     crushes = 0
     betted = False
     noCrash = 0
+    lastRounds = deque(maxlen=5)
     while(1):
         noCrash += 1
+        invent.Update()
         lastRound = WebDriverWait(driver, 300).until(
             EC.presence_of_element_located((By.XPATH, f"//a[contains(@href, {str(lastRoundId+1)})]"))
         ) #wait for next round showed in history
@@ -127,19 +136,28 @@ def waitForStrick(driver, invent, crushStrick = 1,bet = 0.25, strategy = 0): # G
             betted = False
         lastRoundKoef, lastRoundId = float(lastRound.text.strip('x')), int(lastRound.get_attribute('href').split('/')[-1])
         print(lastRoundKoef, lastRoundId)
+        print("Balance: "+str(invent.balance))
         if lastRoundKoef < 1.20:
             crushes+=1
+            lastRounds.appendleft(1)
         else:
             crushes = 0
+            lastRounds.appendleft(0)
+        print("last 5 rounds: ", lastRounds)
+
         if crushes == 0 and noCrash >= 12:
             noCrash = 0
             driver.refresh()
             invent = Inventory(driver)
-        if(crushes >= crushStrick):
+        #if(crushes >= crushStrick):
+        if isBet(lastRounds, templates):
             print("Now i have to bet")
+            invent.Update()
             invent.SelectSkin(bet)
+            sleep(0.3)
             invent.Bet()
             betted = True
+
 
 # def initButtons(driver):
 #     global buttons
@@ -150,6 +168,20 @@ def waitForStrick(driver, invent, crushStrick = 1,bet = 0.25, strategy = 0): # G
 #     buttons['OpenShop'] = driver.find_element_by_class_name("inventory__footer").find_element_by_tag_name("button")
 #
 
+def isBet(lastRounds, templates):
+    for template in templates:
+        bet_ = True
+        if len(template) > len(lastRounds):
+            continue
+        i = 0
+        for elTemplate in template:
+            if elTemplate != lastRounds[i]:
+                bet_ = False
+                break
+            i += 1
+        if bet_:
+            return True
+    return False
 
 def login(*args):
     try:
@@ -189,10 +221,6 @@ def login(*args):
     passInput.send_keys(password)
     passInput.send_keys('\n')
     sleep(0.3)
-    # signInButton = WebDriverWait(driver, 15).until(
-    #     EC.presence_of_element_located((By.ID, "login_btn_signin"))
-    # )
-    # signInButton.click()
 
     try:
         while(1):
@@ -203,8 +231,6 @@ def login(*args):
             sgc = str(input("Steam guard code: "))
             guardInput.send_keys(sgc)
             guardInput.send_keys('\n')
-            #confirmButton = driver.find_element_by_class_name("auth_button leftbtn")
-            #confirmButton.click()
             try:
                 err = WebDriverWait(driver, 6).until(
                     EC.presence_of_element_located((By.ID, "login_twofactorauth_message_incorrectcode"))
@@ -214,7 +240,6 @@ def login(*args):
             except:
                 print("Logged in with steam guard code")
                 return 2
-
     except:
         print(Exception)
         print("logged in without Steam Guard")
@@ -255,11 +280,15 @@ except:
     driver.quit()
 
 login()
+templates = [
+    [1, 1, 1],
+    [1, 1, 0, 1, 1],
+    [1, 0, 1, 0, 1]
+]
 
 #Authorization
 betInp = float(input("Enter the bet "))
-crushSt = int(input("Enter the crash strick "))
-
+#crushSt = int(input("Enter the crash strick "))
 
 while(input("Are you ready?[y/n]") != 'y'):
     continue
@@ -275,4 +304,4 @@ inventory.ExchangeSelected(betInp, driver)
 sleep(1)
 
 #Main program
-waitForStrick(driver, inventory, bet=float(betInp), crushStrick=crushSt)
+waitForStrick(driver, inventory, bet=float(betInp))
