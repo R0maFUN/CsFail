@@ -141,6 +141,85 @@ def waitForStrick(driver, invent, crushStrick = 1,bet = 0.25, strategy = 0): # G
             invent.Bet()
             betted = True
 
+# def initButtons(driver):
+#     global buttons
+#     buttons = dict()
+#     buttons['MakeBet'] = WebDriverWait(driver, 40).until(
+#         EC.presence_of_element_located((By.CLASS_NAME, "information__footer"))
+#     )
+#     buttons['OpenShop'] = driver.find_element_by_class_name("inventory__footer").find_element_by_tag_name("button")
+#
+
+
+def login(*args):
+    try:
+        loginButton = driver.find_element_by_class_name("profile__auth")
+    except:
+        print("Already logged in")
+        return 0 # already logged in
+    loginButton.click()
+    try:
+        loginInput = WebDriverWait(driver, 15).until(
+            EC.presence_of_element_located((By.ID, "steamAccountName"))
+        )
+    except:
+        sleep(5)
+        signInButton = WebDriverWait(driver, 15).until(
+            EC.presence_of_element_located((By.ID, "login_btn_signin"))
+        )
+        signInButton.click()
+        print("Logged in without entering the pass")
+        return 1
+
+    passInput = WebDriverWait(driver, 15).until(
+        EC.presence_of_element_located((By.ID, "steamPassword"))
+    )
+    if len(args) >= 2:
+        username = str(args[0])
+        password = str(args[1])
+    elif len(args) == 1:
+        username = str(args[0])
+        password = str(input("Enter the password: "))
+    else:
+        username = str(input("Enter the username: "))
+        password = str(input("Enter the password: "))
+
+    loginInput.send_keys(username)
+    sleep(0.3)
+    passInput.send_keys(password)
+    passInput.send_keys('\n')
+    sleep(0.3)
+    # signInButton = WebDriverWait(driver, 15).until(
+    #     EC.presence_of_element_located((By.ID, "login_btn_signin"))
+    # )
+    # signInButton.click()
+
+    try:
+        while(1):
+            guardInput = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.ID, "twofactorcode_entry"))
+            )
+            print("Enter the steam guard code")
+            sgc = str(input("Steam guard code: "))
+            guardInput.send_keys(sgc)
+            guardInput.send_keys('\n')
+            #confirmButton = driver.find_element_by_class_name("auth_button leftbtn")
+            #confirmButton.click()
+            try:
+                err = WebDriverWait(driver, 6).until(
+                    EC.presence_of_element_located((By.ID, "login_twofactorauth_message_incorrectcode"))
+                )
+                print("Incorrect steam guard code")
+                continue
+            except:
+                print("Logged in with steam guard code")
+                return 2
+
+    except:
+        print(Exception)
+        print("logged in without Steam Guard")
+
+
 
 def resource_path(relative_path):
     try:
@@ -175,29 +254,25 @@ try:
 except:
     driver.quit()
 
+login()
+
 #Authorization
 betInp = float(input("Enter the bet "))
 crushSt = int(input("Enter the crash strick "))
 
-print("Make an authorization")
-while(input("Did you log in?[y/n]") != 'y'):
+
+while(input("Are you ready?[y/n]") != 'y'):
     continue
 
-test = Inventory(driver)
-for sk in test.skins:
+inventory = Inventory(driver)
+for sk in inventory.skins:
     print(sk.price)
 
-#test.SelectSkin(0.36)
-#sleep(2)
-test.SelectAll()
+inventory.SelectAll()
 sleep(2)
-# test.UnSelectSkin(price=2.49)
-# sleep(2)
-test.ExchangeSelected(betInp, driver)
+
+inventory.ExchangeSelected(betInp, driver)
 sleep(1)
-#test.SelectSkin(0.25)
+
 #Main program
-
-
-
-waitForStrick(driver, test, bet=float(betInp), crushStrick=crushSt)
+waitForStrick(driver, inventory, bet=float(betInp), crushStrick=crushSt)
