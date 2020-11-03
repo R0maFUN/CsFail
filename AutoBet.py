@@ -52,3 +52,4 @@ sleep(1)
 
 # Analyzing last crushes and making bets
 waitForStrick(driver, inventory, templates, bet=float(betInp))
+

@@ -107,4 +107,5 @@ class Inventory:
         self.Update()
     def Bet(self):
         self.betButton.click()
+
         #self.Update()
