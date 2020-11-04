@@ -3,6 +3,7 @@ from selenium.webdriver.chrome.options import Options
 import os
 import sys
 
+
 def startDriver():
     # saving and loading cookies/settings/etc and trying to make selenium undetectable
     chrome_options = Options()

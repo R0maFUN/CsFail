@@ -85,3 +85,4 @@ def isBet(lastRounds, templates):
         if bet_:
             return True
     return False
+
