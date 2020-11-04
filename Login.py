@@ -11,6 +11,7 @@ def login(driver, *args):
         return 0 # already logged in
     loginButton.click()
     try:
+        print("I AM HERE")
         loginInput = WebDriverWait(driver, 15).until(
             EC.presence_of_element_located((By.ID, "steamAccountName"))
         )
