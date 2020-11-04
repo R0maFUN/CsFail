@@ -9,6 +9,7 @@ from inventory import Skin, Inventory
 from bet import waitForStrick
 from StartBrowser import startDriver
 
+
 # template for making bets [0] - not crush, [1] - crush
 templates = [
     [1, 1, 1],
