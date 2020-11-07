@@ -14,9 +14,13 @@ class Skin:
 class Inventory:
     def __init__(self, driver):
         # list of skin's html objects
-        invHtml = WebDriverWait(driver, 60).until(
-            EC.presence_of_all_elements_located((By.CLASS_NAME, "skin_theme_inventory"))
-        )
+        try:
+            invHtml = WebDriverWait(driver, 60).until(
+                EC.presence_of_all_elements_located((By.CLASS_NAME, "skin_theme_inventory"))
+            )
+        except:
+            print("The inventory is empty, buy smth and relaunch the program")
+            exit()
         if (len(invHtml) > 0):
             self.skins = [Skin(el) for el in invHtml]
             self.balance = round(sum(el.price for el in self.skins), 2)
@@ -107,4 +111,3 @@ class Inventory:
         self.Update()
     def Bet(self):
         self.betButton.click()
-        #self.Update()

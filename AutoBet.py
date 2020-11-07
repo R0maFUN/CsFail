@@ -11,11 +11,19 @@ from StartBrowser import startDriver
 
 
 # template for making bets [0] - not crush, [1] - crush
+#templates = [
+#    [1, 1, 1],
+#    [1, 1, 0, 1, 1],
+#    [1, 0, 1, 0, 1],
+#    [1, 1, 0, 0, 1, 1, 1]
+#]
+
 templates = [
     [1, 1, 1],
     [1, 1, 0, 1, 1],
+    [1, 1, 0, 1, 0, 1],
     [1, 0, 1, 0, 1],
-    [1, 1, 0, 0, 1, 1, 1]
+    [1, 1, 0, 0, 1, 1, 1],
 ]
 
 # Starting the browser

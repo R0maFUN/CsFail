@@ -10,12 +10,12 @@ def login(driver, *args):
         print("Already logged in")
         return 0 # already logged in
     loginButton.click()
-    try:
-        loginInput = WebDriverWait(driver, 15).until(
-            EC.presence_of_element_located((By.ID, "steamAccountName"))
-        )
-    except:
-        sleep(5)
+
+    loginInput = WebDriverWait(driver, 15).until(
+        EC.presence_of_element_located((By.ID, "steamAccountName"))
+    )
+    if loginInput.get_attribute("type") == "hidden":
+        sleep(3)
         signInButton = WebDriverWait(driver, 15).until(
             EC.presence_of_element_located((By.ID, "login_btn_signin"))
         )
@@ -55,12 +55,16 @@ def login(driver, *args):
                 err = WebDriverWait(driver, 6).until(
                     EC.presence_of_element_located((By.ID, "login_twofactorauth_message_incorrectcode"))
                 )
-                print("Incorrect steam guard code")
-                continue
+                sleep(1)
+                if err.get_attribute("style") == "display: none;":
+                    print("Logged in with steam guard code")
+                    return 2
+                else:
+                    print("Incorrect steam guard code")
+                    continue
             except:
                 print("Logged in with steam guard code")
                 return 2
     except:
         print(Exception)
         print("logged in without Steam Guard")
-        
